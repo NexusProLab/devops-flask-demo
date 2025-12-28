@@ -1,0 +1,22 @@
+name: Deploy to Home Server
+
+# Триггер: запускать этот пайплайн при каждом 'git push' в ветку 'main'
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    # САМОЕ ГЛАВНОЕ: Указываем, что работа должна выполняться на нашем агенте
+    runs-on: self-hosted
+
+    steps:
+      # Шаг 1: Скачиваем последнюю версию кода из репозитория на сервер
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Шаг 2: Выполняем команды для пересборки и перезапуска Docker-контейнеров
+      - name: Deploy with Docker Compose
+        run: |
+          docker compose down
+          docker compose up -d --build
