@@ -3,3 +3,44 @@ services:
     build: .
     ports:
       - "5000:5000"
+# 1. Шпион, собирающий метрики с хост-машины (сервера)
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+
+  # 2. База данных для хранения метрик (Prometheus)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      # Монтируем наш файл конфигурации внутрь контейнера
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      # Указываем Prometheus использовать наш файл конфигурации
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      # Откроем порт 9090 для отладки, если понадобится
+      - "9090:9090"
+
+  # 3. Визуализация метрик (Grafana)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      # Открываем порт 3000, чтобы мы могли зайти на дашборд из браузера
+      - "3000:3000"
+    environment:
+      # Устанавливаем пароль администратора по умолчанию
+      - GF_SECURITY_ADMIN_PASSWORD=admin

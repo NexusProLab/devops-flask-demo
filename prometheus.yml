@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 15s # Сообщает Prometheus, как часто нужно опрашивать цели (каждые 15 секунд)
+
+# Список целей для сбора метрик
+scrape_configs:
+  # Первая (и единственная) задача: собирать метрики с Node Exporter
+  - job_name: 'node_exporter'
+    static_configs:
+      # Цель: контейнер с именем 'node-exporter' на порту 9100
+      - targets: ['node-exporter:9100']
